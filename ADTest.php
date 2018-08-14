@@ -1,229 +1,6 @@
 <?php
+$someva = 'text literal';
 
-use Dostavista\Core\Config\Paths;
-use Dostavista\Framework\FileUploads;
-
-class ADTest extends \PHPUnit\Framework\TestCase {
-    public function testEgyptStyleCodeTest() {
-        $commits = $this->getCommitedFiles();
-
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-                        $file = new ADFile($fileName);
-                        while (($line = $file->getLine()) !== false) {
-                            $this->assertFalse(
-                                $line->testContainsIncorrectFunctionDefinition(),
-                                "File '$fileName', line " . $line->Index() . " :  opening ' {' must be placed on ending of function definition line\n"
-                            );
-                            $this->assertFalse(
-                                $line->testContainsIncorrectClassDefinition(),
-                                "File '$fileName', line " . $line->Index() . " :  opening ' {' must be placed on ending of class definition line\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testCamelCaseVariableNames() {
-        $commits = $this->getCommitedFiles();
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-//                        echo $fileName . PHP_EOL;
-                        $file = new ADFile($fileName);
-//                        if (strpos($fileName, 'TimeSlotContractOrderRow') < 1) {
-//                            break;
-//                        }
-
-                        while (($line = $file->getLine()) !== false) {
-
-                            $this->assertFalse(
-                                $line->testContainsUnderscoreInVariableNames(),
-                                //$line->OrigText() .
-                                "File '$fileName', line " . $line->Index() . " : Needle using CamelCase style for variable name\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testDebugging() {
-        $commits = $this->getCommitedFiles();
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-                    case 'phtml':
-                        $file = new ADFile($fileName);
-                        while (($line = $file->getLine()) !== false) {
-                            $this->assertFalse(
-                                $line->testContainsDebugging(),
-                                "File '$fileName', line " . $line->Index() . " : line contains debugging\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testIfConditions() {
-        $commits = $this->getCommitedFiles();
-
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-                        $file = new ADFile($fileName);
-                        while (($line = $file->getLine()) !== false) {
-                            $this->assertFalse(
-                                $line->testContainsIncorrectIfConitionDefinition(),
-                                "File '$fileName', line " . $line->Index() . " : Need space between if and opening(\n"
-                            );
-                            $this->assertFalse(
-                                $line->testContainsIncorrectElseDefinition(),
-                                "File '$fileName', line " . $line->Index() . " : Incorrect else definition - need '} else ' on some line\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testSwitchConditions() {
-        $commits = $this->getCommitedFiles();
-
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-                        $file = new ADFile($fileName);
-                        while (($line = $file->getLine()) !== false) {
-                            $this->assertFalse(
-                                $line->testContainsIncorrectSwitchConitionDefinition(),
-                                "File '$fileName', line " . $line->Index() . " : Need space between switch and opening(\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testTryCatchDefinitions() {
-        $commits = $this->getCommitedFiles();
-
-        if (is_array($commits) && count($commits) > 0) {
-            foreach ($commits as $fileInfoLine) {
-
-                $fileName = $this->extractFullFileName($fileInfoLine);
-                if ($fileName === false){
-                    continue;
-                }
-
-                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-                    case 'php':
-                        $file = new ADFile($fileName);
-                        while (($line = $file->getLine()) !== false) {
-                            $this->assertFalse(
-                                $line->testContainsIncorrectCatchDefinition(),
-                                "File '$fileName', line " . $line->Index() . " : Incorrect else definition - need '} catch ' on some line\n"
-                            );
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    public function testCodeParser() {
-        $CodeFile = new CodeFile(file('~/web/dostavista/tests/Test/ADTest.php'));
-        $CodeFile->parse();
-//        $commits = $this->getCommitedFiles();
-//
-//        if (is_array($commits) && count($commits) > 0) {
-//            foreach ($commits as $fileInfoLine) {
-//
-//                $fileName = $this->extractFullFileName($fileInfoLine);
-//                if ($fileName === false){
-//                    continue;
-//                }
-//
-//                switch (strtolower(pathinfo($fileName, PATHINFO_EXTENSION))) {
-//                    case 'php':
-//                        $file = new ADFile($fileName);
-//                        $F = new CodeElement()
-//
-//                        while (($line = $file->getLine()) !== false) {
-//                            $this->assertFalse(
-//                                $line->testContainsIncorrectCatchDefinition(),
-//                                "File '$fileName', line " . $line->Index() . " : Incorrect else definition - need '} catch ' on some line\n"
-//                            );
-//                        }
-//                        break;
-//                }
-//            }
-//        }
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getCommitedFiles() {
-        $command = new Helper_ConsoleCommand('git status --porcelain', Paths::getRootPath());
-        $command->execute();
-
-        $this->assertSame(0, $command->getExitCode(), $command->getStdErr());
-
-        return $command->getStdOutLines();
-    }
-
-    /**
-     * @param $fileInfoLine string
-     * @return bool|string
-     */
-    private function extractFullFileName($fileInfoLine) {
-        $fileName = mb_split(' ', trim($fileInfoLine));
-        if (count ($fileName) < 2){
-            return false;
-        }
-        return Paths::getRootPath() . '/' . $fileName[count($fileName) - 1];
-    }
-
-
-}
 
 
 class ADFile {
@@ -382,7 +159,8 @@ class FileLine extends ParseableElement {
                 }
                 else {
 
-                    $this->prevLine->LastElement()->AddText(mb_substr($text, 0, $multiLineCommentEndPos + 1, $this->Index()), $this->Index());
+
+                    $this->prevLine->LastElement()->AddText(mb_substr($text, 0, $multiLineCommentEndPos + 2), $this->Index());
                     $text = mb_substr($text, $multiLineCommentEndPos + 2);
                     if (mb_strlen($text) === 0) {
                         // Больше в строке нечего разбирать
@@ -449,13 +227,13 @@ class FileLine extends ParseableElement {
                                 }
                                 if (($i = mb_strpos($text, '*/')) === false) {
                                     $this->isEndAsTextLiteral = true; // Текстовый литерал мы искали в элементе типа FileLine
-                                    $this->elements[] = new MultiLineCommentElement($text, $this);
+                                    $this->elements[] = new MultiLineCommentElement($text, $this->Index());
                                     // Т.к. комментарий тянется до конца строки, то из цикла можно полностью выйти. Для этого его условие обратим в false
                                     $i = $l;
                                     goto outerLoop;
                                 }
                                 else {
-                                    $this->elements[] = new SingleLineCommentElement(mb_substr($text, 0, $i + 1), $this);
+                                    $this->elements[] = new SingleLineCommentElement(mb_substr($text, 0, $i + 2), $this->Index());
                                     $text = mb_substr($text, $i + 2);
                                     $i = 0;
                                     $l = mb_strlen($text);
@@ -467,7 +245,7 @@ class FileLine extends ParseableElement {
                                     $text             = mb_substr($text, $i);
                                 }
                                 // Однострочный комментарий до конца строки
-                                $this->elements[] = new SingleLineCommentElement($text, $this);
+                                $this->elements[] = new SingleLineCommentElement($text, $this->Index());
                                 // Т.к. комментарий тянется до конца строки, то из цикла можно полностью выйти. Для этого его условие обратим в false
                                 $i = $l;
                                 goto outerLoop;
@@ -485,21 +263,30 @@ class FileLine extends ParseableElement {
                         $this->elements[] = new IntermediateElement(mb_substr($text, 0, $i), $this);
                         $text             = mb_substr($text, $i);
                         $l                = mb_strlen($text);
+                        $i = 0;
                     }
                     $i++;
+//                    echo '>>> ' . $this->Index() . ' OriginalText ' . $this->OrigText() . PHP_EOL;
+//                    echo '>>> ' . $this->Index() . ' Text ' . $text . PHP_EOL;
+                    $escaped = false;
                     while ($i < $l) {
                         $char = mb_substr($text, $i, 1);
-                        $escaped = false;
+//                        echo '>>> ' . 'Escaped ' . ($escaped ? 'TRUE' : 'FALSE'). PHP_EOL;
+//                        echo '>>> ' . 'Char ' . $char . PHP_EOL;
+
                         switch ($char) {
                             case $quote:
                                 if (!$escaped) {
                                     // Конец текстового литерала
-                                    $this->elements[] = new SingleLineTextLiteralElement(mb_substr($text, 0, $i), $this);
+//                                    echo '>>> ' . 'Literal ' . mb_substr($text, 0, $i + 1) . PHP_EOL;
+                                    $this->elements[] = new SingleLineTextLiteralElement(mb_substr($text, 0, $i + 1), $this->Index(), $quote);
                                     $text             = mb_substr($text, $i + 1);
+//                                    echo '>>> ' . 'TextAL ' . $text . PHP_EOL;
                                     $l                = mb_strlen($text);
                                     $i                = 0;
                                     goto outerLoop;
                                 }
+                                $escaped = false;
                                 break;
                             case '\\':
                                 $escaped = !$escaped;
@@ -511,13 +298,13 @@ class FileLine extends ParseableElement {
                         $i++;
                     }
                     // Достигли конца строки, но так и не нашли завершающей кавычки
-                    $this->elements[]          = new MultiLineTextLiteralElement($text, $this);
+                    $this->elements[]          = new MultiLineTextLiteralElement($text, $this->Index(), $quote);
                     $this->isEndAsTextLiteral = true; // Текстовый литерал мы искали в элементе типа FileLine
                     break;
             }
             $i++;
         }
-
+//        $somevar = "some\'var";
 
         parent::parse();
 
@@ -900,6 +687,15 @@ abstract class ElementAbstract {
         return $this->origText;
     }
 
+    public function excludeFromChain() {
+        if ($this->prev) {
+            $this->prev->NextElement($this->next);
+        }
+        if ($this->next) {
+            $this->next->PrevElement($this->prev);
+        }
+    }
+
 }
 
 class CodeLineElement extends ElementAbstract {
@@ -957,10 +753,12 @@ abstract class TextLiteralElement extends ElementAbstract {
         $this->quote = $quote;
         $this->textFragments[$codeLineIndex] = $text;
         parent::__construct($text, $codeLineIndex);
+//        echo __CLASS__ . ' text : ' . $this->Text() . PHP_EOL;
     }
 
     public function AddText($text, $codeLineIndex) {
         $this->textFragments[$codeLineIndex] = $text;
+//        echo __CLASS__ . ' text : ' . $this->Text() . PHP_EOL;
     }
 
     public function Text()
@@ -1021,3 +819,7 @@ class CodeFile {
 
     }
 }
+
+$lines = file('ADTest.php');
+$cf = new CodeFile(array_slice($lines, 265, 100));
+$cf->parse();
